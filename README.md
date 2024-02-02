@@ -8,3 +8,7 @@
 
 This is the newest and best maintained package for GMM and GEL
 estimation. Will add some intro shortly.
+
+For now, the development page is on Rforge. Follow the link for the most recent version: https://r-forge.r-project.org/projects/gmm/
+
+I am curently working on adding the most recent tools (test and inference) for models with weak and or many instruments.
