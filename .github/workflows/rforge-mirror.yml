@@ -1,0 +1,54 @@
+name: Mirror R-Forge
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"   # every 6 hours
+  workflow_dispatch:         # also allows manual runs
+
+permissions:
+  contents: write
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout GitHub repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Subversion
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y subversion
+
+      - name: Checkout momentfit from R-Forge
+        run: |
+          svn checkout \
+            svn://svn.r-forge.r-project.org/svnroot/gmm/pkg/momentfit \
+            /tmp/momentfit
+
+      - name: Synchronize files
+        run: |
+          rsync -av --delete \
+            --exclude=".git/" \
+            --exclude=".github/" \
+            --exclude=".svn/" \
+            /tmp/momentfit/ ./
+
+      - name: Commit changes
+        run: |
+          SVN_REV=$(svn info --show-item revision /tmp/momentfit)
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "No changes from R-Forge."
+          else
+            git commit -m "Sync from R-Forge SVN revision ${SVN_REV}"
+            git push
+          fi
